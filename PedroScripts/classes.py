@@ -8,7 +8,7 @@ debug = True
 
 class Estimador:
     def __init__(self, inicial, final, tamBloco=8, tamAreaBusca=7) -> None:
-        self.frameInicial, self.frameFinal = self.preprocess(inicial, final, tamBloco=8)
+        self.frameInicial, self.frameFinal = self.lendoEPreparandoImagem(inicial, final, tamBloco=8)
         self.tamBloco = tamBloco
         self.tamAreaBusca = tamAreaBusca
 
@@ -28,6 +28,7 @@ class Estimador:
     def segmentarImagem(self, imagem):
         """
         Calcula quantos macroblocos 'cabem' na imagem
+        Isso é importante para conseguir cropar a imagem para um tamanho que vai ser bem recebido pelo resto do algoritmo
 
         @param imagem: I-Frame
         @return: Quantas linhas e colunas, respectivamente, de macroblocos cabem na imagem
@@ -143,31 +144,29 @@ class Estimador:
 
 
 
-    def blockSearchBody(self, frameInicial, frameFinal):
+    def construirFrameEstimado(self):
         """
-        Facilitates the creation of a estimado frame based on the inicialand inicial,frame
-
-        @param frameInicial: Frame inicial
-        @param frameFinal: Frame final
+        Itera sobre todos os macroblocos do frameFinal fazendo a estimação e compensação em relação ao frameInicial,
+        e cria o frameEstimado a partir da realocação dos macroblocos.
         @return: Frame predito por estimação e compensação de movimento
         """
-        h, w = frameInicial.shape
-        hSegments, wSegments = self.segmentarImagem(frameInicial, self.tamBloco)
+        h, w = self.frameInicial.shape
+        hSegments, wSegments = self.segmentarImagem(self.frameInicial, self.tamBloco)
 
 
-        estimado = np.ones((h, w))*255
+        frameEstimado = np.ones((h, w))*255
         bcount = 0
         for y in range(0, int(hSegments*self.tamBloco), self.tamBloco):
             for x in range(0, int(wSegments*self.tamBloco), self.tamBloco):
                 bcount+=1
-                macroblocoFinal = frameFinal[y:y+self.tamBloco, x:x+self.tamBloco] #get current macroblock
+                macroblocoFinal = self.frameFinal[y:y+self.tamBloco, x:x+self.tamBloco] #get current macroblock
 
-                areaDeBuscaInicial = self.getAreaDeBuscaInicial(x, y, frameInicial, self.tamBloco, self.tamAreaBusca) #get inicialsearch area
+                areaDeBuscaInicial = self.getAreaDeBuscaInicial(x, y, self.frameInicial, self.tamBloco, self.tamAreaBusca) #get inicialsearch area
 
                 #print("AnchorSearchArea: ", areaDeBuscaInicial.shape)
 
                 macroblocoInicial = self.getMelhorBloco(macroblocoFinal, areaDeBuscaInicial, self.tamBloco) #get best inicialmacroblock
-                estimado[y:y+self.tamBloco, x:x+self.tamBloco] = macroblocoInicial #add inicialblock to estimado frame
+                frameEstimado[y:y+self.tamBloco, x:x+self.tamBloco] = macroblocoInicial #add inicialblock to estimado frame
 
                 #cv2.imwrite("OUTPUT/estimadotestFrame.png", estimado)
                 #print(f"ITERATION {bcount}")
@@ -178,11 +177,13 @@ class Estimador:
 
         assert bcount == int(hSegments*wSegments) #check all macroblocks are accounted for
 
-        return estimado
+        self.frameEstimado = frameEstimado
+        return frameEstimado
 
-    def getResidual(self, final, estimado):
-        """Create residual frame from inicial,frame - estimado frame"""
-        return np.subtract(final, estimado)
+    def getResidual(self):
+        """Create residual frame from inicial,frame - frameEstimado frame"""
+        self.frameResidual = np.subtract(self.frameFinal, self.frameEstimado)
+        return self.frameResidual
 
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>.
     # Image Compression
@@ -190,20 +191,27 @@ class Estimador:
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
-    def getReconstructTarget(self, residual, estimado):
-        """Reconstruct inicial,frame from residual frame plus estimado frame"""
-        return np.add(residual, estimado)
+    def reconstuirImagem(self, frameResidual, frameEstimado):
+        """
+        Soma dois frames
+        """
+        return np.add(frameResidual, frameEstimado)
 
-    def showImages(self, *kwargs): #shows imagems
+    def showImages(self, *kwargs):
+        """
+        Mostra imagens
+        """
         for k in range(len(kwargs)):
             cv2.imshow(f"Image: {k}", k)
             cv2.waitKey(-1)
 
     def getResidualMetric(self, residualFrame):
-        """Calculate residual metric from average of sum of absolute residual values in residual frame"""
+        """
+        Calculate residual metric from average of sum of absolute residual values in residual frame
+        """
         return np.sum(np.abs(residualFrame))/(residualFrame.shape[0]*residualFrame.shape[1])
 
-    def preprocess(self, inicial, final, tamBloco):
+    def lendoEPreparandoImagem(self, inicial, final):
 
         if isinstance(inicial, str) and isinstance(final, str):
             frameInicial = self.BGR2YCrCb(cv2.imread(inicial))[:, :, 0] # get luma component
@@ -217,9 +225,9 @@ class Estimador:
             raise ValueError
 
         #resize frame to fit segmentation
-        hSegments, wSegments = self.segmentarImagem(frameInicial, tamBloco)
-        frameInicial = cv2.resize(frameInicial, (int(wSegments*tamBloco), int(hSegments*tamBloco)))
-        frameFinal = cv2.resize(frameFinal, (int(wSegments*tamBloco), int(hSegments*tamBloco)))
+        hSegments, wSegments = self.segmentarImagem(frameInicial, self.tamBloco)
+        frameInicial = cv2.resize(frameInicial, (int(wSegments*self.tamBloco), int(hSegments*self.tamBloco)))
+        frameFinal = cv2.resize(frameFinal, (int(wSegments*self.tamBloco), int(hSegments*self.tamBloco)))
 
         #if debug:
             #print(f"A SIZE: {frameInicial.shape}")
@@ -228,16 +236,19 @@ class Estimador:
 
         return (frameInicial, frameFinal)
 
-def main(frameInicial, frameFinal, outfile="OUTPUT", saveOutput=False, tamBloco = 16):
+def main(frameInicial, frameFinal, outfile="OUTPUT", saveOutput=False, tamBloco = 16, tamAreaBusca=8):
     """
     Calculate residual frame and metric along with other artifacts
     @param inicial: file path of I-Frame or I-Frame
     @param final: file path of Current Frame or Current Frame
     @return: residual metric
     """
-    frameInicial, frameFinal = preprocess(frameInicial, frameFinal, tamBloco) #processes frame or filepath to frame
 
-    estimadoFrame = blockSearchBody(frameInicial, frameFinal, tamBloco)
+    estimador = Estimador(frameInicial, frameFinal, tamBloco, tamAreaBusca)
+
+    frameInicial, frameFinal = lendoEPreparandoImagem(frameInicial, frameFinal, tamBloco) #processes frame or filepath to frame
+
+    estimadoFrame = construirFrameEstimado(frameInicial, frameFinal, tamBloco)
     residualFrame = getResidual(frameFinal, estimadoFrame)
     naiveResidualFrame = getResidual(frameInicial, frameFinal)
     reconstructTargetFrame = getReconstructTarget(residualFrame, estimadoFrame)
