@@ -1,0 +1,1 @@
+ffmpeg -framerate 30 -i %04d.jpeg -codec copy output.mkv
