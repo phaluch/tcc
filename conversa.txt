@@ -1,0 +1,24 @@
+Intra-código:
+> steps do Three-Step-Search [Variação: 3 a 1]
+> Tamanho do bloco para a estimação [Variação: 6, 8, 10, 16]
+> Área de busca para estimação [6, 8, 10]
+> Matriz de quantização para compressão (fator de compressão)
+> Intervalo em frames entre I-Frames e P-Frames # Não temos B-Frames [2 -> fps/2]
+
+Extra-código:
+> Vídeo 'mais parado' vs. 'mais movimentado'
+> Vídeo com ruído
+    > Sal e Pimenta
+    > Gaussian Blur
+> Vídeo mais homogêneo vs. heterogêneo
+> Variação de contraste/brilho
+
+Features:
+> Reconstrução do vídeo final (cosmético)
+
+[?] Qual a métrica: perda de informação
+
+Próximos passos:
+> Preparar esses vídeos fake
+> Deixar rodando ad eternum
+> Escrever o TCC
