@@ -8,9 +8,10 @@ debug = True
 
 class Estimador:
     def __init__(self, inicial, final, tamBloco=8, tamAreaBusca=7) -> None:
-        self.frameInicial, self.frameFinal = self.lendoEPreparandoImagem(inicial, final, tamBloco=8)
         self.tamBloco = tamBloco
         self.tamAreaBusca = tamAreaBusca
+        self.frameInicial, self.frameFinal = self.lendoEPreparandoImagem(inicial, final)
+        
 
 
     def YCrCb2BGR(self, imagem):
@@ -23,7 +24,7 @@ class Estimador:
         """
         Converts numpy imagem into from BGR to YCrCb color space
         """
-        return cv2.cvtColor(self, imagem, cv2.COLOR_YCrCb2BGR)
+        return cv2.cvtColor(imagem, cv2.COLOR_YCrCb2BGR)
 
     def segmentarImagem(self, imagem):
         """
@@ -58,7 +59,7 @@ class Estimador:
         @return: ndarray contendo área de busca
         """
         h, w = frameInicial.shape
-        cx, cy = self.getCentro(x, y, self.tamBloco)
+        cx, cy = self.getCentro(x, y)
 
         sx = max(0, cx-int(self.tamBloco/2)-self.tamAreaBusca) # ensure search area is in bounds
         sy = max(0, cy-int(self.tamBloco/2)-self.tamAreaBusca) # and get top left corner of search area
@@ -127,7 +128,7 @@ class Estimador:
             pointList = [p1,p2,p3,p4,p5,p6,p7,p8,p9] # retrieve 9 search points
 
             for p in range(len(pointList)):
-                macroblocoInicial = self.getMacroblocoFrameInicial(pointList[p], areaInicial, macroblocoFinal, self.tamBloco) # get inicialmacroblock
+                macroblocoInicial = self.getMacroblocoFrameInicial(pointList[p], areaInicial, macroblocoFinal) # get inicialmacroblock
                 MAD = self.getMAD(macroblocoFinal, macroblocoInicial) # determine MAD
                 if MAD < minMAD: # store point with minimum mAD
                     minMAD = MAD
@@ -151,7 +152,7 @@ class Estimador:
         @return: Frame predito por estimação e compensação de movimento
         """
         h, w = self.frameInicial.shape
-        hSegments, wSegments = self.segmentarImagem(self.frameInicial, self.tamBloco)
+        hSegments, wSegments = self.segmentarImagem(self.frameInicial)
 
 
         frameEstimado = np.ones((h, w))*255
@@ -161,11 +162,11 @@ class Estimador:
                 bcount+=1
                 macroblocoFinal = self.frameFinal[y:y+self.tamBloco, x:x+self.tamBloco] #get current macroblock
 
-                areaDeBuscaInicial = self.getAreaDeBuscaInicial(x, y, self.frameInicial, self.tamBloco, self.tamAreaBusca) #get inicialsearch area
+                areaDeBuscaInicial = self.getAreaDeBuscaInicial(x, y, self.frameInicial) #get inicialsearch area
 
                 #print("AnchorSearchArea: ", areaDeBuscaInicial.shape)
 
-                macroblocoInicial = self.getMelhorBloco(macroblocoFinal, areaDeBuscaInicial, self.tamBloco) #get best inicialmacroblock
+                macroblocoInicial = self.getMelhorBloco(macroblocoFinal, areaDeBuscaInicial) #get best inicialmacroblock
                 frameEstimado[y:y+self.tamBloco, x:x+self.tamBloco] = macroblocoInicial #add inicialblock to estimado frame
 
                 #cv2.imwrite("OUTPUT/estimadotestFrame.png", estimado)
@@ -225,7 +226,7 @@ class Estimador:
             raise ValueError
 
         #resize frame to fit segmentation
-        hSegments, wSegments = self.segmentarImagem(frameInicial, self.tamBloco)
+        hSegments, wSegments = self.segmentarImagem(frameInicial)
         frameInicial = cv2.resize(frameInicial, (int(wSegments*self.tamBloco), int(hSegments*self.tamBloco)))
         frameFinal = cv2.resize(frameFinal, (int(wSegments*self.tamBloco), int(hSegments*self.tamBloco)))
 

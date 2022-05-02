@@ -26,7 +26,7 @@ class Compressor:
         imagemResDesquantizacao = quantizador.dequantizarImagem(imagemResQuantizacao)
         imagemResultante = dctizador.aplicarIDCT(imagemResDesquantizacao)
 
-        Utilidades.getMADEntreImagens(self.imagemValidada, imagemResultante, self.blocosV, self.blocosH)
+        #Utilidades.getMADEntreImagens(self.imagemValidada, imagemResultante, self.blocosV, self.blocosH)
 
         if salvarDisco:
             Utilidades.salvarEmDisco('imagem-inicial', 'jpeg', self.imagemValidada)
