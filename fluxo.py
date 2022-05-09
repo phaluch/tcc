@@ -8,8 +8,8 @@ from tqdm import tqdm
 targetPath = "testImages/frame13.png"
 est = Estimador(anchorPath,targetPath)'''
 
-output_file = 'video_em_frames/comprimido13.mp4'
-output_folder = 'video_em_frames/'
+output_file = 'vinframes/comprimido.mkv'
+output_folder = 'vinframes/'
 video = cv2.VideoCapture('video_menor.mp4')
 n_pFrames = 4
 frame_width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -26,7 +26,7 @@ height, width = estimador.frameInicial.shape
 
 
 # Define the codec and create VideoWriter object
-fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Be sure to use lower case
+fourcc = cv2.VideoWriter_fourcc(*'fmp4') # Be sure to use lower case
 out = cv2.VideoWriter(filename=output_file, fourcc=fourcc, fps=videofps, frameSize=(width, height), isColor=0)
 
 # Escreve primeiro frame do vídeo
@@ -61,42 +61,42 @@ out.release()
 
 
 
-######################################################################################################
+# ######################################################################################################
 
-from tqdm import tqdm
-import cv2
-import os
+# from tqdm import tqdm
+# import cv2
+# import os
 
-# Arguments
-dir_path = 'hastes/'
-output = 'hastes2.mp4'
+# # Arguments
+# dir_path = 'hastes/'
+# output = 'hastes2.mp4'
 
-images = sorted(os.listdir(dir_path))
+# images = sorted(os.listdir(dir_path))
 
-# Determine the width and height from the first image
-image_path = os.path.join(dir_path, images[0])
-print(image_path)
-frame = cv2.imread(image_path)
-cv2.imshow('video',frame)
-height, width, channels = frame.shape
+# # Determine the width and height from the first image
+# image_path = os.path.join(dir_path, images[0])
+# print(image_path)
+# frame = cv2.imread(image_path)
+# cv2.imshow('video',frame)
+# height, width, channels = frame.shape
 
-# Define the codec and create VideoWriter object
-fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Be sure to use lower case
-out = cv2.VideoWriter(output, fourcc, 30.0, (width, height))
+# # Define the codec and create VideoWriter object
+# fourcc = cv2.VideoWriter_fourcc(*'mp4v') # Be sure to use lower case
+# out = cv2.VideoWriter(output, fourcc, 30.0, (width, height))
 
-for image in tqdm(images):
+# for image in tqdm(images):
 
-    image_path = os.path.join(dir_path, image)
-    frame = cv2.imread(image_path)
+#     image_path = os.path.join(dir_path, image)
+#     frame = cv2.imread(image_path)
 
-    out.write(frame) # Write out frame to video
+#     out.write(frame) # Write out frame to video
 
-    cv2.imshow('video',frame)
-    if (cv2.waitKey(1) & 0xFF) == ord('q'): # Hit `q` to exit
-        break
+#     cv2.imshow('video',frame)
+#     if (cv2.waitKey(1) & 0xFF) == ord('q'): # Hit `q` to exit
+#         break
 
-# Release everything if job is finished
-out.release()
-cv2.destroyAllWindows()
+# # Release everything if job is finished
+# out.release()
+# cv2.destroyAllWindows()
 
-print("The output video is {}".format(output))
+# print("The output video is {}".format(output))

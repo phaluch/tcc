@@ -22,8 +22,9 @@ class Compressor:
         dctizador = DCTizador(self.tamanhoBloco, self.blocosV, self.blocosH)
         quantizador = Quantizador(self.tamanhoBloco, self.blocosV, self.blocosH)
         imagemResDCT = dctizador.aplicarDCT(self.imagemValidada)
-        imagemResQuantizacao = quantizador.quantizarImagem(imagemResDCT)
-        imagemResDesquantizacao = quantizador.dequantizarImagem(imagemResQuantizacao)
+        # imagemResQuantizacao = quantizador.quantizarImagem(imagemResDCT)
+        # imagemResDesquantizacao = quantizador.dequantizarImagem(imagemResQuantizacao)
+        imagemResDesquantizacao = quantizador.eliminarDados(imagemResDCT, 80, self.h, self.w)
         imagemResultante = dctizador.aplicarIDCT(imagemResDesquantizacao)
 
         #Utilidades.getMADEntreImagens(self.imagemValidada, imagemResultante, self.blocosV, self.blocosH)
@@ -31,7 +32,7 @@ class Compressor:
         if salvarDisco:
             Utilidades.salvarEmDisco('imagem-inicial', 'jpeg', self.imagemValidada)
             Utilidades.salvarEmDisco('imagem-DCT', 'jpeg', imagemResDCT)
-            Utilidades.salvarEmDisco('imagem-quantizada', 'jpeg', imagemResQuantizacao)
+            # Utilidades.salvarEmDisco('imagem-quantizada', 'jpeg', imagemResQuantizacao)
             Utilidades.salvarEmDisco('imagem-resultante', 'jpeg', imagemResultante)
 
         return imagemResultante
@@ -46,22 +47,25 @@ class DCTizador:
         self.blocosH = blocosH
 
     def aplicarDCT(self, imagem:np.ndarray):
-        imagemTransformada = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
+        # imagemTransformada = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
 
-        for linha in range(self.blocosV):
-            for coluna in range(self.blocosH):
-                    blocoAtual = cv.dct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
-                    imagemTransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
+        # for linha in range(self.blocosV):
+        #     for coluna in range(self.blocosH):
+        #             blocoAtual = cv.dct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
+        #             imagemTransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
+        imagemTransformada = cv.dct(imagem)
 
         return imagemTransformada
 
     def aplicarIDCT(self, imagem:np.ndarray):
-        imagemDestransformada = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
+        # imagemDestransformada = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
 
-        for linha in range(self.blocosV):
-            for coluna in range(self.blocosH):
-                    blocoAtual = cv.idct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
-                    imagemDestransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
+        # for linha in range(self.blocosV):
+        #     for coluna in range(self.blocosH):
+        #             blocoAtual = cv.idct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
+        #             imagemDestransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
+
+        imagemDestransformada = cv.idct(imagem)
 
         return imagemDestransformada
 
@@ -103,6 +107,14 @@ class Quantizador:
                     imagemQuantizada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
 
         return imagemQuantizada
+
+    def eliminarDados(self, imagem:np.ndarray, fatorDeCompressao: int, h, w):
+        lh = int(round(h - ((fatorDeCompressao/100) * h)))
+        lw = int(round(w - ((fatorDeCompressao/100) * w)))
+
+        imagemRecebida = imagem
+        imagemRecebida[lh:h, lw:w] = 0
+        return imagemRecebida
 
     def dequantizarImagem(self, qImagem: np.ndarray):
         imagemDequantizada = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
