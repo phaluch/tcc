@@ -8,8 +8,12 @@ from tqdm import tqdm
 targetPath = "testImages/frame13.png"
 est = Estimador(anchorPath,targetPath)'''
 
-output_file = 'vinframes/comprimido.mkv'
-output_folder = 'vinframes/'
+TAMANHO_BLOCO = 24
+FATOR_COMPRESSAO = 50
+TAMANHO_AREA_BUSCA = 7
+
+OUTPUT_FOLDER = 'vinframes/'
+
 video = cv2.VideoCapture('video_menor.mp4')
 n_pFrames = 4
 frame_width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -20,41 +24,31 @@ videoframecount = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
 
 #Lendo o primeiro frame para pegar alguns metadados
 ok, i_frame = video.read()
-estimador = Estimador(i_frame,i_frame)
+estimador = Estimador(i_frame, i_frame, TAMANHO_BLOCO, TAMANHO_AREA_BUSCA)
 height, width = estimador.frameInicial.shape
 #cv2.imwrite(f'{output_folder}{4*"0"}i.png',i_frame)
 
 
 # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'fmp4') # Be sure to use lower case
-out = cv2.VideoWriter(filename=output_file, fourcc=fourcc, fps=videofps, frameSize=(width, height), isColor=0)
 
-# Escreve primeiro frame do vídeo
-out.write(estimador.frameInicial)
 for i in tqdm(range(1,videoframecount-1)):
     ok, cur_frame = video.read()
     if i%n_pFrames == 0:
         i_frame = cur_frame
-        estimador = Estimador(i_frame,cur_frame)
+        estimador = Estimador(i_frame, cur_frame, TAMANHO_BLOCO, TAMANHO_AREA_BUSCA)
         cv2.imwrite(f'{output_folder}{i:04}i.jpeg',estimador.frameInicial)
-        out.write(estimador.frameInicial.astype(np.uint8))
         cv2.imshow('janela', estimador.frameInicial)
     else:
-        estimador = Estimador(i_frame,cur_frame)
+        estimador = Estimador(i_frame, cur_frame, TAMANHO_BLOCO, TAMANHO_AREA_BUSCA)
         frameEstimado = estimador.construirFrameEstimado()
         residual = estimador.getResidual()
         
-        compressor = Compressor(residual)
+        compressor = Compressor(residual, TAMANHO_BLOCO, FATOR_COMPRESSAO)
         comprimida = compressor.comprimir()
 
         reconstruida = estimador.reconstuirImagem(comprimida, frameEstimado)
         cv2.imwrite(f'{output_folder}{i:04}p.jpeg',reconstruida)
-        out.write(reconstruida.astype(np.uint8))
-
-cv2.destroyAllWindows()
-out.release()
-
-
 
 
 

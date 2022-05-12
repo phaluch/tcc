@@ -1,6 +1,6 @@
 import os
 
-path = 'video_em_frames/'
+path = 'vinframes/'
 
 arquivos = [x for x in os.listdir(path) if x.endswith('.jpeg')]
 print(arquivos[:10])

@@ -22,7 +22,7 @@ class Compressor:
         dctizador = DCTizador(self.tamanhoBloco, self.blocosV, self.blocosH)
         pixelKiller = PixelKiller(self.tamanhoBloco, self.blocosV, self.blocosH)
         imagemResDCT = dctizador.aplicarDCT(self.imagemValidada)
-        imagemResEliminacao = pixelKiller.eliminarDados(imagemResDCT, self.fatorCompressao)
+        imagemResEliminacao = pixelKiller.eliminarPixels(imagemResDCT, self.fatorCompressao)
         imagemResultante = dctizador.aplicarIDCT(imagemResEliminacao)
 
         #Utilidades.getMADEntreImagens(self.imagemValidada, imagemResultante, self.blocosV, self.blocosH)
@@ -30,7 +30,7 @@ class Compressor:
         if salvarDisco:
             Utilidades.salvarEmDisco('imagem-inicial', 'jpeg', self.imagemValidada)
             Utilidades.salvarEmDisco('imagem-DCT', 'jpeg', imagemResDCT)
-            # Utilidades.salvarEmDisco('imagem-quantizada', 'jpeg', imagemResQuantizacao)
+            Utilidades.salvarEmDisco('imagem-pixelEliminados', 'jpeg', imagemResEliminacao)
             Utilidades.salvarEmDisco('imagem-resultante', 'jpeg', imagemResultante)
 
         return imagemResultante
