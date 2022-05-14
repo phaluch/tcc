@@ -45,23 +45,23 @@ class DCTizador:
     def aplicarDCT(self, imagem:np.ndarray):
         imagemTransformada = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
 
-        for linha in range(self.blocosV):
-            for coluna in range(self.blocosH):
-                    blocoAtual = cv.dct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
-                    imagemTransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
-        # imagemTransformada = cv.dct(imagem)
+        # for linha in range(self.blocosV):
+        #     for coluna in range(self.blocosH):
+        #             blocoAtual = cv.dct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
+        #             imagemTransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
+        imagemTransformada = cv.dct(imagem)
 
         return imagemTransformada
 
     def aplicarIDCT(self, imagem:np.ndarray):
         imagemDestransformada = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
 
-        for linha in range(self.blocosV):
-            for coluna in range(self.blocosH):
-                    blocoAtual = cv.idct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
-                    imagemDestransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
+        # for linha in range(self.blocosV):
+        #     for coluna in range(self.blocosH):
+        #             blocoAtual = cv.idct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
+        #             imagemDestransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
 
-        # imagemDestransformada = cv.idct(imagem)
+        imagemDestransformada = cv.idct(imagem)
 
         return imagemDestransformada
 
@@ -72,16 +72,20 @@ class PixelKiller:
         self.blocosH = blocosH
 
     def eliminarPixels(self, imagem:np.ndarray, fatorDeCompressao: int):
-        limite = int(round(self.tamanhoBloco - ((fatorDeCompressao/100) * self.tamanhoBloco)))
-        imagemLoss = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
+        # limite = int(round(self.tamanhoBloco - ((fatorDeCompressao/100) * self.tamanhoBloco)))
+        # imagemLoss = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
+        lh = int(round(imagem.shape[0] - ((fatorDeCompressao/100) * imagem.shape[0])))
+        lw = int(round(imagem.shape[1] - ((fatorDeCompressao/100) * imagem.shape[1])))
 
-        for linha in range(self.blocosV):
-            for coluna in range(self.blocosH):
-                    blocoAtual = imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]
-                    blocoAtual[limite:self.tamanhoBloco, limite:self.tamanhoBloco] = 0
-                    imagemLoss[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
+        # for linha in range(self.blocosV):
+        #     for coluna in range(self.blocosH):
+        #             blocoAtual = imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]
+        #             blocoAtual[limite:self.tamanhoBloco, limite:self.tamanhoBloco] = 0
+        #             imagemLoss[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
 
-        return imagemLoss
+        # return imagemLoss
+        imagem[lh:imagem.shape[0], lw:imagem.shape[1]] = 0
+        return imagem
 
 class Utilidades:
     

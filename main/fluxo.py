@@ -7,8 +7,8 @@ from tqdm import tqdm
 import glob
 import os
 
-TAMANHO_BLOCO = 20
-FATOR_COMPRESSAO = 50
+TAMANHO_BLOCO = 24
+FATOR_COMPRESSAO = 95
 TAMANHO_AREA_BUSCA = 7
 NUMERO_P_FRAMES = 4
 
@@ -16,6 +16,18 @@ VIDEOS_FOLDER = './videos/'
 OUTPUT_FOLDER = './results/'
 VIDEOS_TO_RUN = glob.glob(f'{VIDEOS_FOLDER}*.mp4')
 GENERATE_FINAL_VIDEO = False
+
+
+def getPartialPSNR(originalImage, finalImage):
+    originalImage=originalImage[0:finalImage.shape[0], 0:finalImage.shape[1]]
+    diff = originalImage - finalImage
+    diffsq = diff**2
+    tam = diffsq.shape[0] * diffsq.shape[1]
+
+    MSE = np.sum(diffsq)/tam
+    PSNR = (20 * np.log10(255)) - (10 * np.log10(MSE))
+
+    return PSNR
 
 try:
     os.mkdir(OUTPUT_FOLDER)
@@ -40,11 +52,11 @@ for videoPath in VIDEOS_TO_RUN:
 
     formatedTargetOut = OUTPUT_FOLDER + videoPath.replace('.mp4', '').replace(f'{VIDEOS_FOLDER}', '')
 
-    try:
-        shutil.rmtree(formatedTargetOut)
-        os.mkdir(formatedTargetOut)
-    except:
-        pass
+    # try:
+        # shutil.rmtree(formatedTargetOut)
+    os.mkdir(formatedTargetOut)
+    # except:
+        # pass
 
     cv2.imwrite(f'{formatedTargetOut}/{4*"0"}i.png',i_frame)
 
@@ -53,6 +65,7 @@ for videoPath in VIDEOS_TO_RUN:
         if i%NUMERO_P_FRAMES == 0:
             i_frame = cur_frame
             estimador = Estimador(i_frame, cur_frame, TAMANHO_BLOCO, TAMANHO_AREA_BUSCA)
+            # print(getPartialPSNR(cv2.cvtColor(cur_frame, cv2.COLOR_BGR2GRAY),cv2.cvtColor(cur_frame, cv2.COLOR_BGR2GRAY)))
             cv2.imwrite(f'{formatedTargetOut}/{i:04}i.jpeg',estimador.frameInicial)
         else:
             estimador = Estimador(i_frame, cur_frame, TAMANHO_BLOCO, TAMANHO_AREA_BUSCA)
@@ -63,6 +76,8 @@ for videoPath in VIDEOS_TO_RUN:
             comprimida = compressor.comprimir()
 
             reconstruida = estimador.reconstuirImagem(comprimida, frameEstimado)
+            print(getPartialPSNR(cv2.cvtColor(cur_frame, cv2.COLOR_BGR2GRAY),reconstruida))
+            cv2.imwrite(f'{formatedTargetOut}/{i:04}poriginal.jpeg',cv2.cvtColor(cur_frame, cv2.COLOR_BGR2GRAY))
             cv2.imwrite(f'{formatedTargetOut}/{i:04}p.jpeg',reconstruida)
     
     if GENERATE_FINAL_VIDEO:
