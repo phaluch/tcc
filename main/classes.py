@@ -18,13 +18,13 @@ class Estimador:
         """
         Converts numpy imagem into from YCrCb to BGR color space
         """
-        return cv2.cvtColor(imagem, cv2.COLOR_BGR2YCrCb)
+        return cv2.cvtColor(imagem, cv2.COLOR_YCrCb2BGR)
 
     def BGR2YCrCb(self, imagem):
         """
         Converts numpy imagem into from BGR to YCrCb color space
         """
-        return cv2.cvtColor(imagem, cv2.COLOR_YCrCb2BGR)
+        return cv2.cvtColor(imagem, cv2.COLOR_BGR2YCrCb)
 
     def segmentarImagem(self, imagem):
         """
