@@ -78,20 +78,11 @@ class Estimador:
         @param macroblocoFinal: macrobloco do frame final, para comparação
         @return: macrobloco que foi removido da área de busca, centrado em p
         """
-        print(p)
         px, py = p # coordinates of macroblock center
         px, py = px-int(self.tamBloco/2), py-int(self.tamBloco/2) # get top left corner of macroblock
-        print(px,py)
         px, py = max(0,px), max(0,py) # ensure macroblock is within bounds
-        print(px,py)
-
-
 
         macroblocoInicial = areaInicial[py:py+self.tamBloco, px:px+self.tamBloco] # retrive macroblock from inicialsearch area
-        print(f'{py}:{py+self.tamBloco}, {px}:{px+self.tamBloco}')
-        print(macroblocoInicial.shape, areaInicial.shape)
-        print('_____________')
-
 
         try:
             assert macroblocoInicial.shape == macroblocoFinal.shape # must be same shape

@@ -80,14 +80,14 @@ for TAMANHO_BLOCO_ESTIMACAO in range(8,17,4):
 
                 for i in tqdm(range(1,int((videoFrameCount-1) / 4))):
                     ok, cur_frame = video.read()
-                    if i%3 == 0:
+                    if i%NUMERO_P_FRAMES == 0:
                         i_frame = cur_frame
-                        estimador = Estimador(i_frame, cur_frame, TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA)
+                        estimador = Estimador(i_frame, cur_frame, 8, 8)
                         cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{i:04}i.jpeg',estimador.frameInicial)
                     else:
                         startEstim = time.process_time()
 
-                        estimador = Estimador(i_frame, cur_frame, TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA)
+                        estimador = Estimador(i_frame, cur_frame, 8, 8)
                         frameEstimado = estimador.construirFrameEstimado()
                         residual = estimador.getResidual()
 
