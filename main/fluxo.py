@@ -25,9 +25,9 @@ except:
 print('Running algortihm to following video:', videoPath)
 
 for TAMANHO_BLOCO_ESTIMACAO in range(8,17,4):
-    for TAMANHO_AREA_BUSCA in [round(TAMANHO_BLOCO_ESTIMACAO * fator) for fator in [0.5,1.0,1.5]]:
+    for TAMANHO_AREA_BUSCA in [round(TAMANHO_BLOCO_ESTIMACAO * fator) for fator in [1.0,1.5,2.0]]:
         for NUMERO_P_FRAMES in range(15,0,-2):
-            for FATOR_COMPRESSAO in range(90, 99, 1):
+            for FATOR_COMPRESSAO in range(90, 100, 1):
                 video = cv2.VideoCapture(videoPath)
 
                 frameWidth = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
