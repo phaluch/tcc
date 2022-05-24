@@ -20,7 +20,7 @@ class Compressor:
 
     def comprimir(self, salvarDisco:bool = False):
         dctizador = DCTizador(self.tamanhoBloco, self.blocosV, self.blocosH)
-        pixelKiller = PixelKiller(self.tamanhoBloco, self.blocosV, self.blocosH)
+        pixelKiller = PixelKiller(self.tamanhoBloco, self.h, self.w)
         imagemResDCT = dctizador.aplicarDCT(self.imagemValidada)
         imagemResEliminacao = pixelKiller.eliminarPixels(imagemResDCT, self.fatorCompressao)
         imagemResultante = dctizador.aplicarIDCT(imagemResEliminacao)
@@ -43,45 +43,51 @@ class DCTizador:
         self.blocosH = blocosH
 
     def aplicarDCT(self, imagem:np.ndarray):
-        imagemTransformada = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
+        # imagemTransformada = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
 
-        for linha in range(self.blocosV):
-            for coluna in range(self.blocosH):
-                    blocoAtual = cv.dct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
-                    imagemTransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
-        # imagemTransformada = cv.dct(imagem)
+        # for linha in range(self.blocosV):
+        #     for coluna in range(self.blocosH):
+        #             blocoAtual = cv.dct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
+        #             imagemTransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
+
+        imagemTransformada = cv.dct(imagem)
 
         return imagemTransformada
 
     def aplicarIDCT(self, imagem:np.ndarray):
-        imagemDestransformada = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
+        # imagemDestransformada = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
 
-        for linha in range(self.blocosV):
-            for coluna in range(self.blocosH):
-                    blocoAtual = cv.idct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
-                    imagemDestransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
+        # for linha in range(self.blocosV):
+        #     for coluna in range(self.blocosH):
+        #             blocoAtual = cv.idct(imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco])
+        #             imagemDestransformada[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
 
-        # imagemDestransformada = cv.idct(imagem)
+        imagemDestransformada = cv.idct(imagem)
 
         return imagemDestransformada
 
 class PixelKiller:
-    def __init__(self, tamanhoBloco:int, blocosV:int, blocosH:int):
+    def __init__(self, tamanhoBloco:int, h:int, w:int):
         self.tamanhoBloco = tamanhoBloco
-        self.blocosV = blocosV
-        self.blocosH = blocosH
+        self.h = h
+        self.w = w
 
     def eliminarPixels(self, imagem:np.ndarray, fatorDeCompressao: int):
-        limite = int(round(self.tamanhoBloco - ((fatorDeCompressao/100) * self.tamanhoBloco)))
-        imagemLoss = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
+        # limite = int(round(self.tamanhoBloco - ((fatorDeCompressao/100) * self.tamanhoBloco)))
 
-        for linha in range(self.blocosV):
-            for coluna in range(self.blocosH):
-                    blocoAtual = imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]
-                    blocoAtual[limite:self.tamanhoBloco, limite:self.tamanhoBloco] = 0
-                    imagemLoss[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
+        lh = int(round(self.h - ((fatorDeCompressao/100) * self.h)))
+        lw = int(round(self.w - ((fatorDeCompressao/100) * self.w)))
+        # imagemLoss = np.zeros((self.blocosV*self.tamanhoBloco,self.blocosH*self.tamanhoBloco))
 
-        return imagemLoss
+        # for linha in range(self.blocosV):
+        #     for coluna in range(self.blocosH):
+        #             blocoAtual = imagem[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]
+        #             blocoAtual[limite:self.tamanhoBloco, limite:self.tamanhoBloco] = 0
+        #             imagemLoss[linha*self.tamanhoBloco:(linha+1)*self.tamanhoBloco,coluna*self.tamanhoBloco:(coluna+1)*self.tamanhoBloco]=blocoAtual
+
+        imagem[lh:self.h, lw:self.w] = 0
+
+        return imagem
 
 class Utilidades:
     
