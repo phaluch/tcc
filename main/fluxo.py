@@ -78,16 +78,16 @@ for TAMANHO_BLOCO_ESTIMACAO in range(8,17,4):
 
                 cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{4*"0"}i.png',cv.cvtColor(i_frame, cv2.COLOR_BGR2GRAY))
 
-                for i in tqdm(range(1,int((videoFrameCount-1) / 4))):
+                for i in tqdm(range(1,int((videoFrameCount-1)))):
                     ok, cur_frame = video.read()
                     if i%NUMERO_P_FRAMES == 0:
                         i_frame = cur_frame
-                        estimador = Estimador(i_frame, cur_frame, 8, 8)
+                        estimador = Estimador(i_frame, cur_frame, TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA)
                         cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{i:04}i.jpeg',estimador.frameInicial)
                     else:
                         startEstim = time.process_time()
 
-                        estimador = Estimador(i_frame, cur_frame, 8, 8)
+                        estimador = Estimador(i_frame, cur_frame, TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA)
                         frameEstimado = estimador.construirFrameEstimado()
                         residual = estimador.getResidual()
 
