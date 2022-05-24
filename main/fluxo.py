@@ -74,7 +74,7 @@ def executa(TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA, NUMERO_P_FRAMES, FATOR_
 
     cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{4*"0"}i.png',cv.cvtColor(i_frame, cv2.COLOR_BGR2GRAY))
 
-    for i in range(1,int((videoFrameCount-1))):
+    for i in tqdm(range(1,int((videoFrameCount-1)))):
         ok, cur_frame = video.read()
         if i%NUMERO_P_FRAMES == 0:
             i_frame = cur_frame
