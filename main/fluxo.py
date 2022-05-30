@@ -12,7 +12,7 @@ import csv
 from joblib import Parallel, delayed
 from numba import jit
 
-OUTPUT_FOLDER = "F:/Python/results/"
+OUTPUT_FOLDER = "results/"
 GENERATE_FINAL_VIDEO = True
 
 videoPath = sys.argv[1]
@@ -216,7 +216,7 @@ def executa(TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA, NUMERO_P_FRAMES, FATOR_
         os.system(f'ffmpeg -framerate 30 -i {videoOutput}/outputs/{formatedTargetOut}/%04d.jpeg -codec copy {videoOutput}/mounted_videos/{formatedTargetOut}.mkv')
 
     return 'Execution sucessfully completed!'
-    
 
-resultado = Parallel(n_jobs=-1)(delayed(executa)(TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA, NUMERO_P_FRAMES, FATOR_COMPRESSAO) for TAMANHO_BLOCO_ESTIMACAO in range(8,17,4) for TAMANHO_AREA_BUSCA in [round(TAMANHO_BLOCO_ESTIMACAO * fator) for fator in [1.0,1.5,2.0]] for NUMERO_P_FRAMES in range(15,0,-2) for FATOR_COMPRESSAO in range(90, 100, 1))
+executa(8,8,2,0)
+# Parallel(n_jobs=-1)(delayed(executa)(TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA, NUMERO_P_FRAMES, FATOR_COMPRESSAO) for TAMANHO_BLOCO_ESTIMACAO in range(8,17,4) for TAMANHO_AREA_BUSCA in [round(TAMANHO_BLOCO_ESTIMACAO * fator) for fator in [1.0,1.5,2.0]] for NUMERO_P_FRAMES in range(15,0,-2) for FATOR_COMPRESSAO in range(90, 100, 1))
 
