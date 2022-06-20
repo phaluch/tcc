@@ -6,12 +6,15 @@ from matplotlib import pyplot as plt
 import numpy as np
 from random import randint
 from tqdm import tqdm
+from numba import jit
 
+@jit
 def coef(k_or_j,m_or_n):
     if k_or_j == 0:
         return np.sqrt(1/m_or_n)
     return np.sqrt(2/m_or_n)
 
+@jit
 def C(m,n,i,j):
     M = np.zeros((m,n))
     for r in range(m):
@@ -46,7 +49,7 @@ def pixelateThis(img, width, height, pw=8, ph=8):
 
 W, H = 1600, 800
 #img = cv.imread('main/tkinter/8x8.png',cv.IMREAD_GRAYSCALE)
-i8_raw = cv.imread('main/tkinter/dratini.png',cv.IMREAD_GRAYSCALE)
+i8_raw = cv.imread('main/tkinter/pumpkin.jpeg',cv.IMREAD_GRAYSCALE)
 #print(img)
 i25 = cv.imread('main/tkinter/25x25.png',cv.IMREAD_GRAYSCALE)
 #i16 = cv.imread('16x16.png',cv.IMREAD_GRAYSCALE)
@@ -67,8 +70,11 @@ def c():
         logo = ImageTk.PhotoImage(logo)
         flag=1
 
-def NormalizeData(data, range=255):
-    return range * (data - np.min(data)) / (np.max(data) - np.min(data))
+def NormalizeData(data, range=255, absol=False):
+    if absol:
+        data = abs(data)
+    result = range * (data - np.min(data)) / (np.max(data) - np.min(data))
+    return result
         
 
 # Botao
@@ -82,15 +88,21 @@ browse_btn.grid(column=2)
 m = 40
 n = 40
 
+botao_frequencia_w, botao_frequencia_h = H//m, H//m
+
+target_x, target_y = H//2, H//2
+
 i8 = cv.resize(i8_raw, (m, n), interpolation=cv.INTER_LINEAR)
 
 i8dct = cv.dct(i8.astype(float))
+i8dct_norm = NormalizeData(i8dct, absol=True)
 print('i8dct.shape: ',i8dct.shape)
 
 padding_cols = 4
 
 canvas.grid(columnspan=n+padding_cols, rowspan=m)
 labels = [[None for j in range(n)] for i in range(m)]
+legendas = [[None for j in range(n)] for i in range(m)]
 flags = np.array([[None for j in range(n)] for i in range(m)])
 bases = []
 for i in tqdm(range(m)):
@@ -118,14 +130,14 @@ def buildImage():
         raise Exception
 
 instrucao_X = tk.Label(root, text='Intervalo X:')
-instrucao_X.grid(row=int(n/2)+5, column=0)    
+instrucao_X.grid(row=1, column=0)     #instrucao_X.grid(row=n//2+5, column=0)    
 valor_de_X = tk.Entry(root)
-valor_de_X.grid(row=int(n/2)+5, column=1)
+valor_de_X.grid(row=1, column=1) #valor_de_X.grid(row=n//2+5, column=1)
 
 instrucao_Y = tk.Label(root, text='Intervalo Y:')
-instrucao_Y.grid(row=int(n/2)+5, column=2)    
+instrucao_Y.grid(row=1, column=2) #instrucao_Y.grid(row=n//2+5, column=2)    
 valor_de_Y = tk.Entry(root)
-valor_de_Y.grid(row=int(n/2)+5, column=3)
+valor_de_Y.grid(row=1, column=3) #valor_de_Y.grid(row=n//2+5, column=3)
 
 
 def pegarValores():
@@ -145,7 +157,7 @@ def adicionar():
     x, y = pegarValores()
     flags[x[0]:x[1]:x[2],y[0]:y[1]:y[2]] = 1
     normalized = buildImage()
-    img = Image.fromarray(pixelateThis(normalized,400,400,m,n))
+    img = Image.fromarray(pixelateThis(normalized,target_x, target_y,m,n))
     img = ImageTk.PhotoImage(img)
     but1.configure(image=img)
     but1.image=img
@@ -157,7 +169,7 @@ def subtrair():
     x, y = pegarValores()
     flags[x[0]:x[1]:x[2],y[0]:y[1]:y[2]] = 0
     normalized = buildImage()
-    img = Image.fromarray(pixelateThis(normalized,400,400,m,n))
+    img = Image.fromarray(pixelateThis(normalized,target_x, target_y,m,n))
     img = ImageTk.PhotoImage(img)
     but1.configure(image=img)
     but1.image=img
@@ -181,23 +193,28 @@ def updateButtons():
                 labels[i][j].image = img
 
 adicionarButton = tk.Button(root, text='Adicionar', command = lambda:adicionar())
-adicionarButton.grid(row=int(n/2)+6, column=1)
+#adicionarButton.grid(row=n//2+6, column=1)
+adicionarButton.grid(row=0, column=1)
 subtrairButton = tk.Button(root, text='Subtrair', command = lambda:subtrair())
-subtrairButton.grid(row=int(n/2)+6, column=2)
+#subtrairButton.grid(row=n//2+6, column=2)
+subtrairButton.grid(row=0, column=2)
 
 
-botao_frequencia_w, botao_frequencia_h = 20, 20
 
+# Populando botoes pela primeira vez
 for i in range(m):
     for j in range(n):
         freq_base = abs(NormalizeData(pixelateThis(bases[i][j],botao_frequencia_w, botao_frequencia_h,m,n)))
+        freq_base = ((i8dct_norm[i][j]*freq_base)/255)**1.8
         #print(freq_base)
         img = prepImage(freq_base)
-        labels[i][j] = tk.Button(root, text=f'[{i}][{j}]', command = lambda i=i, j=j:chbutton3(i,j))
+        labels[i][j] = tk.Button(root, text=f'[{i}][{j}]', command = lambda i=i, j=j:chbutton3(i,j),borderwidth = 1)
         labels[i][j].configure(image=img)
         labels[i][j].image=img
         labels[i][j].grid(row=i,column=j+padding_cols)
         flags[i][j] = True
+        #legendas[i][j] = tk.Label(root,text=str(i8dct[i][j]))
+        #legendas[i][j].grid(row=i,column=j+padding_cols)
 
 
 base = np.zeros((m, n))
@@ -212,13 +229,13 @@ def chbutton():
     global but1
     n = randint(0,2)
     if n==0:
-        arr = resizeThis(f1+f2,400,400)
+        arr = resizeThis(f1+f2,target_x, target_y)
         img = Image.fromarray(arr)
     elif n==1:
-        arr = resizeThis(f1,400,400)
+        arr = resizeThis(f1,target_x, target_y)
         img = Image.fromarray(arr)
     elif n==2:
-        arr = resizeThis(f2,400,400)
+        arr = resizeThis(f2,target_x, target_y)
         img = Image.fromarray(arr)
     img = ImageTk.PhotoImage(img)
     but1.configure(image=img)
@@ -239,7 +256,7 @@ def chbutton2(i,j):
                 #print(f'+flags[{a}][{b}]')
                 cur_base+=bases[a][b]
     normalized = NormalizeData(cur_base)
-    img = Image.fromarray(resizeThis(normalized,400,400))
+    img = Image.fromarray(resizeThis(normalized,target_x, target_y))
     img = ImageTk.PhotoImage(img)
     but1.configure(image=img)
     but1.image=img
@@ -261,20 +278,30 @@ def chbutton3(i,j):
         labels[i][j].configure(image=img)
         labels[i][j].image = img
     normalized = buildImage()
-    img = Image.fromarray(pixelateThis(normalized,400,400,m,n))
+    img = Image.fromarray(pixelateThis(normalized,target_x, target_y,m,n))
     img = ImageTk.PhotoImage(img)
     but1.configure(image=img)
     but1.image=img
 
 but1 = tk.Button(root, text=f'BIGONE')
-arr = pixelateThis(i8,400,400,m,n)
+arr = pixelateThis(i8,target_x, target_y,m,n)
 img = Image.fromarray(arr)
 img = ImageTk.PhotoImage(img)
-but1.configure(image=img, command = lambda:chbutton() )
+but1.configure(image=img)
 but1.image = img
-but1.grid(row=0, column=0, rowspan=int(n/2), columnspan=padding_cols)
+but1.grid(row=3, column=0, rowspan=n//2, columnspan=padding_cols)
 
 
+pesos = tk.Button(root, text=f'BIGONE')
+arr = NormalizeData(i8dct, absol=True)**1.5
+arr = pixelateThis(arr,target_x, target_y,m,n)
+img = Image.fromarray(arr)
+img = ImageTk.PhotoImage(img)
+pesos.configure(image=img)
+pesos.image = img
+pesos.grid(row=m//2, column=0, rowspan=n//2, columnspan=padding_cols)
 
+
+l = root.pack_slaves()
 
 root.mainloop()
