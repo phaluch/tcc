@@ -12,7 +12,7 @@ import csv
 from joblib import Parallel, delayed
 from numba import jit
 
-OUTPUT_FOLDER = "F:/Python/results/"
+OUTPUT_FOLDER = "F:/Python/Apresentacao/"
 GENERATE_FINAL_VIDEO = True
 
 videoPath = sys.argv[1]
@@ -169,6 +169,13 @@ def executa(TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA, NUMERO_P_FRAMES, FATOR_
             i_frame = cur_frame
             estimador = Estimador(i_frame, cur_frame, TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA)
             cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{i:04}i.jpeg',estimador.frameInicial)
+            frameEstimado = j_construirFrameEstimado(estimador.frameInicial, estimador.frameFinal, TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA)
+            estimador.frameEstimado = frameEstimado
+
+            residual = estimador.getResidual()
+            
+            cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{i:04}residual.jpeg',residual)
+            cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{i:04}predito.jpeg',frameEstimado)
         else:
             startEstim = time.process_time()
 
@@ -193,16 +200,19 @@ def executa(TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA, NUMERO_P_FRAMES, FATOR_
             startReconstrucao = time.process_time()
 
             reconstruida = estimador.reconstuirImagem(comprimida, frameEstimado)
-
+            i_frame = reconstruida # Adição para corrigir P-Frame no lugar errado
             timeReconstrucao = time.process_time() - startReconstrucao
 
             writer.writerow([i, timeEstim, timeCompression, timeReconstrucao])
 
             if FATOR_COMPRESSAO == 0:
                 cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{i:04}p.jpeg',estimador.frameFinal)
+                cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{i:04}residual.jpeg',residual)
+                cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{i:04}predito.jpeg',frameEstimado)
             else:
                 cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{i:04}residual.jpeg',residual)
                 cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{i:04}p.jpeg',reconstruida)
+                cv2.imwrite(f'{videoOutput}/outputs/{formatedTargetOut}/{i:04}predito.jpeg',frameEstimado)
     
     if GENERATE_FINAL_VIDEO:
         path = f'{videoOutput}/outputs/{formatedTargetOut}/'
@@ -218,5 +228,11 @@ def executa(TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA, NUMERO_P_FRAMES, FATOR_
     return 'Execution sucessfully completed!'
     
 
-resultado = Parallel(n_jobs=-1)(delayed(executa)(TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA, NUMERO_P_FRAMES, FATOR_COMPRESSAO) for TAMANHO_BLOCO_ESTIMACAO in range(8,17,4) for TAMANHO_AREA_BUSCA in [round(TAMANHO_BLOCO_ESTIMACAO * fator) for fator in [1.0,1.5,2.0]] for NUMERO_P_FRAMES in range(15,0,-2) for FATOR_COMPRESSAO in range(90, 100, 1))
+#99 a 99.999%
+#resultado = Parallel(n_jobs=-1)(delayed(executa)(TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA, NUMERO_P_FRAMES, FATOR_COMPRESSAO) for TAMANHO_BLOCO_ESTIMACAO in range(8,17,4) for TAMANHO_AREA_BUSCA in [round(TAMANHO_BLOCO_ESTIMACAO * fator) for fator in [1.0,1.5,2.0]] for NUMERO_P_FRAMES in range(16,1,-2) for FATOR_COMPRESSAO in range(90, 100, 1))
+
+#90 a 99%
+#resultado = Parallel(n_jobs=-1)(delayed(executa)(TAMANHO_BLOCO_ESTIMACAO, TAMANHO_AREA_BUSCA, NUMERO_P_FRAMES, FATOR_COMPRESSAO) for TAMANHO_BLOCO_ESTIMACAO in range(8,17,4) for TAMANHO_AREA_BUSCA in [round(TAMANHO_BLOCO_ESTIMACAO * fator) for fator in [1.0,1.5,2.0]] for NUMERO_P_FRAMES in range(16,1,-2) for FATOR_COMPRESSAO in [68, 70, 72, 74, 76, 78, 80, 83, 86])
+
+executa(16,16,150,72)
 

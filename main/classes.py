@@ -144,7 +144,7 @@ class Estimador:
 
 
 
-    def construirFrameEstimado(self):
+    def construirFrameEstimado(self,show=False):
         """
         Itera sobre todos os macroblocos do frameFinal fazendo a estimação e compensação em relação ao frameInicial,
         e cria o frameEstimado a partir da realocação dos macroblocos.
@@ -166,6 +166,13 @@ class Estimador:
                 #print("AnchorSearchArea: ", areaDeBuscaInicial.shape)
 
                 macroblocoInicial = self.getMelhorBloco(macroblocoFinal, areaDeBuscaInicial) #get best inicialmacroblock
+
+                if show:
+                    macroblocoInicial[0,:] = 0
+                    macroblocoInicial[:,0] = 0
+                    macroblocoInicial[-1,:] = 0
+                    macroblocoInicial[0,-1] = 0
+
                 frameEstimado[y:y+self.tamBloco, x:x+self.tamBloco] = macroblocoInicial #add inicialblock to estimado frame
 
                 #cv2.imwrite("OUTPUT/estimadotestFrame.png", estimado)
@@ -218,7 +225,10 @@ class Estimador:
             frameFinal = self.BGR2YCrCb(cv2.imread(final))[:, :, 0] # get luma component
 
         elif isinstance(inicial, np.ndarray) and isinstance(final, np.ndarray):
-            frameInicial = self.BGR2YCrCb(inicial)[:, :, 0] # get luma component
+            try:
+                frameInicial = self.BGR2YCrCb(inicial)[:, :, 0] # get luma component
+            except:
+                frameInicial = inicial
             frameFinal = self.BGR2YCrCb(final)[:, :, 0] # get luma component
 
         else:
